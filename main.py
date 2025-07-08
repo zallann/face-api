@@ -8,6 +8,11 @@ import shutil
 
 app = FastAPI()
 
+# ✅ Health check endpoint to prevent Railway auto-crash
+@app.get("/")
+def root():
+    return {"status": "Face API is running"}
+
 @app.post("/verify-face/")
 async def verify_face(new: UploadFile = File(...), registered: UploadFile = File(...)):
     try:
