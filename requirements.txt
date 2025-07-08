@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-deepface==0.0.75 --no-deps
+deepface==0.0.75
 opencv-python-headless
 tensorflow==2.11.0
 python-multipart
