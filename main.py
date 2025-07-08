@@ -1,7 +1,10 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # suppress TensorFlow logs
+os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '0'  # prevent OpenCV image decode crash
+
 from fastapi import FastAPI, UploadFile, File
 from deepface import DeepFace
 import shutil
-import os
 
 app = FastAPI()
 
