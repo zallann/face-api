@@ -7,10 +7,8 @@ from deepface import DeepFace
 import shutil
 
 app = FastAPI()
-
-# ✅ Load model sekali saat startup
-model = DeepFace.build_model("Facenet")
-THRESHOLD = 0.1667  # 1 - 0.833 = 0.1667
+model = None  # Lazy-load
+THRESHOLD = 0.1667  # 83.3%
 
 @app.get("/")
 def root():
@@ -18,7 +16,13 @@ def root():
 
 @app.post("/verify-face/")
 async def verify_face(new: UploadFile = File(...), registered: UploadFile = File(...)):
+    global model
+
     try:
+        # Load model pertama kali saat request, bukan saat startup
+        if model is None:
+            model = DeepFace.build_model("Facenet")
+
         with open("new.jpg", "wb") as f:
             shutil.copyfileobj(new.file, f)
         with open("registered.jpg", "wb") as f:
