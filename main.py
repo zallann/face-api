@@ -1,20 +1,21 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # suppress TensorFlow logs
-os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '0'  # prevent OpenCV image decode crash
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '0'
 
 from fastapi import FastAPI, UploadFile, File
-from deepface import DeepFace
 import shutil
 import uvicorn
+from deepface import DeepFace
+
+# ✅ PRELOAD MODEL
+DeepFace.build_model("Facenet")
 
 app = FastAPI()
 
-# ✅ Endpoint root untuk health check
 @app.get("/")
 def root():
     return {"status": "Face API is running"}
 
-# ✅ Endpoint verifikasi wajah
 @app.post("/verify-face/")
 async def verify_face(new: UploadFile = File(...), registered: UploadFile = File(...)):
     try:
@@ -23,7 +24,11 @@ async def verify_face(new: UploadFile = File(...), registered: UploadFile = File
         with open("registered.jpg", "wb") as f:
             shutil.copyfileobj(registered.file, f)
 
-        result = DeepFace.verify("new.jpg", "registered.jpg", enforce_detection=True)
+        result = DeepFace.verify(
+            "new.jpg", "registered.jpg",
+            model_name="Facenet",
+            enforce_detection=True
+        )
 
         os.remove("new.jpg")
         os.remove("registered.jpg")
@@ -32,6 +37,7 @@ async def verify_face(new: UploadFile = File(...), registered: UploadFile = File
             "match": result["verified"],
             "distance": result["distance"]
         }
+
     except Exception as e:
         return {"error": str(e)}
 
