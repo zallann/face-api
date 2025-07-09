@@ -5,14 +5,16 @@ os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '0'  # prevent OpenCV image decode cras
 from fastapi import FastAPI, UploadFile, File
 from deepface import DeepFace
 import shutil
+import uvicorn
 
 app = FastAPI()
 
-# ✅ Health check endpoint to prevent Railway auto-crash
+# ✅ Endpoint root untuk health check
 @app.get("/")
 def root():
     return {"status": "Face API is running"}
 
+# ✅ Endpoint verifikasi wajah
 @app.post("/verify-face/")
 async def verify_face(new: UploadFile = File(...), registered: UploadFile = File(...)):
     try:
@@ -32,3 +34,7 @@ async def verify_face(new: UploadFile = File(...), registered: UploadFile = File
         }
     except Exception as e:
         return {"error": str(e)}
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
