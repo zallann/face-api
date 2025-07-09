@@ -1,7 +1,14 @@
-from fastapi import FastAPI, UploadFile, File
-from deepface import DeepFace
-import shutil
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '0'
+
+from fastapi import FastAPI, UploadFile, File
+import shutil
+import uvicorn
+from deepface import DeepFace
+
+# ✅ PRELOAD MODEL
+DeepFace.build_model("Facenet")
 
 app = FastAPI()
 
@@ -26,16 +33,14 @@ async def verify_face(new: UploadFile = File(...), registered: UploadFile = File
         os.remove("new.jpg")
         os.remove("registered.jpg")
 
-        # Hitung similarity
-        distance = result["distance"]
-        max_distance = 0.10  # <- ubah batas maksimal jadi 0.10 (alias min similarity ~83.3%)
-        similarity = max(0, min(100, (1 - (distance / max_distance)) * 100))
-        is_match = distance <= max_distance  # hanya TRUE jika jarak <= 0.10
-
         return {
-            "match": is_match,
-            "distance": distance,
-            "similarity": round(similarity, 2)
+            "match": result["verified"],
+            "distance": result["distance"]
         }
+
     except Exception as e:
         return {"error": str(e)}
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
